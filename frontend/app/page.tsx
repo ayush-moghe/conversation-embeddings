@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 
 type EmbeddingResponse = {
   embedding: number[];
@@ -10,6 +10,8 @@ type EmbeddingResponse = {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
+const EMBEDDING_STORAGE_KEY = "conversation-embeddings:embedding-state";
+
 export default function Home() {
   const [textInput, setTextInput] = useState("");
   const [fileName, setFileName] = useState("");
@@ -17,6 +19,42 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [embedding, setEmbedding] = useState<number[]>([]);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(EMBEDDING_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as {
+          textInput?: string;
+          fileName?: string;
+          embedding?: number[];
+        };
+
+        setTextInput(parsed.textInput ?? "");
+        setFileName(parsed.fileName ?? "");
+        setEmbedding(Array.isArray(parsed.embedding) ? parsed.embedding : []);
+      }
+    } catch {
+      // Ignore corrupt localStorage values and continue with defaults.
+    } finally {
+      setIsHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
+    const payload = {
+      textInput,
+      fileName,
+      embedding,
+    };
+
+    localStorage.setItem(EMBEDDING_STORAGE_KEY, JSON.stringify(payload));
+  }, [isHydrated, textInput, fileName, embedding]);
 
   const dimensions = embedding.length;
 
@@ -107,7 +145,7 @@ export default function Home() {
     <main className="page-shell">
       <section className="aurora" aria-hidden="true" />
       <section className="panel">
-        <p className="eyebrow">Conversation Embeddings Demo</p>
+        <p className="eyebrow">Embedding</p>
         <h1>Generate embeddings from profile snapshot.</h1>
 
         <form onSubmit={handleSubmit} className="form-grid">
