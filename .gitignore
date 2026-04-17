@@ -5,3 +5,7 @@ backend/venv
 backend/data
 
 backend/test
+
+.DS_Store
+
+backend/__pycache__
