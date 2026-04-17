@@ -348,7 +348,7 @@ export default function PcaSection({ apiBaseUrl }: PcaSectionProps) {
   return (
     <section className="result-card" aria-live="polite" id="folder-pca">
       <div className="result-header">
-        <h2>Folder PCA ({pcaMode}D)</h2>
+        <h2>PCA ({pcaMode}D)</h2>
         {showHeaderStats ? <span>{folderStats}</span> : null}
       </div>
 

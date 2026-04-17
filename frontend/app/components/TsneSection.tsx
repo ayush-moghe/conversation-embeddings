@@ -377,7 +377,7 @@ export default function TsneSection({ apiBaseUrl }: TsneSectionProps) {
   return (
     <section className="result-card" aria-live="polite" id="folder-tsne">
       <div className="result-header">
-        <h2>Folder t-SNE ({tsneMode}D)</h2>
+        <h2>t-SNE ({tsneMode}D)</h2>
         {showHeaderStats ? <span>{folderStats}</span> : null}
       </div>
 
