@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f2eb;
+  --foreground: #1f2f26;
+  --accent: #2d6e4d;
+  --accent-strong: #13452f;
+  --surface: rgba(250, 249, 244, 0.72);
+  --surface-border: rgba(31, 47, 38, 0.14);
+  --muted: #4d5c53;
+  --error: #9e2f2f;
 }
 
 @theme inline {
@@ -12,15 +18,280 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+body {
+  background:
+    radial-gradient(circle at 15% 20%, #dae6d6 0%, transparent 38%),
+    radial-gradient(circle at 88% 12%, #d0e2d8 0%, transparent 30%),
+    linear-gradient(135deg, #efeee7 0%, #f7f5ef 45%, #f0efe8 100%);
+  color: var(--foreground);
+  font-family: "Fraunces", "Iowan Old Style", "Georgia", serif;
+  min-height: 100vh;
+}
+
+.page-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.aurora {
+  position: absolute;
+  inset: auto -20% 58% auto;
+  width: min(62vw, 700px);
+  aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(61, 120, 89, 0.26) 0%, rgba(61, 120, 89, 0) 70%);
+  pointer-events: none;
+  filter: blur(2px);
+  animation: drift 10s ease-in-out infinite alternate;
+}
+
+.panel {
+  width: min(860px, 100%);
+  border: 1px solid var(--surface-border);
+  border-radius: 24px;
+  background: var(--surface);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 24px 60px rgba(23, 34, 28, 0.11);
+  padding: clamp(1.2rem, 2vw, 2.25rem);
+  animation: rise-in 720ms ease both;
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: "IBM Plex Sans", "Avenir Next", "Trebuchet MS", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+h1 {
+  margin-top: 0.55rem;
+  margin-bottom: 1.4rem;
+  font-size: clamp(1.6rem, 3vw, 2.45rem);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  max-width: 26ch;
+}
+
+.form-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.label {
+  font-size: 0.9rem;
+  font-family: "IBM Plex Sans", "Avenir Next", "Trebuchet MS", sans-serif;
+  color: var(--muted);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 200px;
+  border-radius: 14px;
+  border: 1px solid var(--surface-border);
+  padding: 0.95rem 1rem;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  background: rgba(255, 255, 255, 0.62);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: rgba(45, 110, 77, 0.7);
+  box-shadow: 0 0 0 3px rgba(45, 110, 77, 0.18);
+}
+
+.file-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+input[type="file"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.upload-button,
+.submit-button {
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: "IBM Plex Sans", "Avenir Next", "Trebuchet MS", sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.upload-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.52rem 0.95rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-color: var(--surface-border);
+}
+
+.submit-button {
+  justify-self: start;
+  margin-top: 0.25rem;
+  padding: 0.7rem 1.3rem;
+  background: linear-gradient(130deg, var(--accent) 0%, var(--accent-strong) 100%);
+  color: #f5f7f1;
+}
+
+.submit-button:disabled {
+  opacity: 0.68;
+  cursor: wait;
+}
+
+.upload-button:hover,
+.submit-button:hover {
+  filter: saturate(1.05);
+  transform: translateY(-1px);
+}
+
+.file-label {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-family: "IBM Plex Sans", "Avenir Next", "Trebuchet MS", sans-serif;
+}
+
+.status {
+  margin-top: 0.9rem;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+  font-family: "IBM Plex Sans", "Avenir Next", "Trebuchet MS", sans-serif;
+}
+
+.error {
+  color: var(--error);
+}
+
+.result-card {
+  margin-top: 1.3rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.58);
+  padding: 1rem;
+}
+
+.result-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.result-header span {
+  font-size: 0.84rem;
+  color: var(--muted);
+  font-family: "IBM Plex Sans", "Avenir Next", "Trebuchet MS", sans-serif;
+}
+
+.copy-row {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.copy-button {
+  border-radius: 999px;
+  border: 1px solid var(--surface-border);
+  background: rgba(255, 255, 255, 0.74);
+  padding: 0.42rem 0.82rem;
+  cursor: pointer;
+  font-family: "IBM Plex Sans", "Avenir Next", "Trebuchet MS", sans-serif;
+  font-size: 0.84rem;
+  transition: transform 120ms ease, background-color 120ms ease;
+}
+
+.copy-button:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.copy-status {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-family: "IBM Plex Sans", "Avenir Next", "Trebuchet MS", sans-serif;
+}
+
+.preview {
+  margin: 0.9rem 0;
+  font-family: "IBM Plex Mono", "Menlo", "Monaco", monospace;
+  font-size: 0.86rem;
+  color: #24372c;
+  overflow-wrap: anywhere;
+}
+
+details summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: "IBM Plex Sans", "Avenir Next", "Trebuchet MS", sans-serif;
+}
+
+pre {
+  margin-top: 0.65rem;
+  max-height: 220px;
+  overflow: auto;
+  border-radius: 12px;
+  background: rgba(20, 34, 27, 0.93);
+  color: #e2f1e3;
+  padding: 0.8rem;
+  font-size: 0.78rem;
+}
+
+.empty-state {
+  margin-top: 0.85rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-family: "IBM Plex Sans", "Avenir Next", "Trebuchet MS", sans-serif;
+}
+
+@keyframes rise-in {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.99);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes drift {
+  0% {
+    transform: translate(-14px, -10px) scale(0.98);
+  }
+
+  100% {
+    transform: translate(8px, 12px) scale(1.06);
+  }
+}
+
+@media (max-width: 640px) {
+  .panel {
+    border-radius: 18px;
+    padding: 1rem;
+  }
+
+  textarea {
+    min-height: 170px;
+  }
 }

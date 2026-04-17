@@ -1,65 +1,176 @@
-import Image from "next/image";
+"use client";
+
+import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+
+type EmbeddingResponse = {
+  embedding: number[];
+  dimensions: number;
+};
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
 export default function Home() {
+  const [textInput, setTextInput] = useState("");
+  const [fileName, setFileName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [embedding, setEmbedding] = useState<number[]>([]);
+  const [copyStatus, setCopyStatus] = useState<string | null>(null);
+
+  const dimensions = embedding.length;
+
+  const preview = useMemo(() => {
+    if (embedding.length === 0) {
+      return "";
+    }
+
+    const rounded = embedding.slice(0, 16).map((value) => value.toFixed(5));
+    return `[${rounded.join(", ")}${embedding.length > 16 ? ", ..." : ""}]`;
+  }, [embedding]);
+
+  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (!file.name.toLowerCase().endsWith(".txt")) {
+      setError("Please upload a .txt file.");
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      const content = await file.text();
+      setTextInput(content);
+      setFileName(file.name);
+      setError(null);
+    } catch {
+      setError("Could not read the selected file.");
+    }
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const conversation = textInput.trim();
+    if (!conversation) {
+      setError("Please add some text or upload a .txt file first.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/getEmbedding`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ conversation }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+
+      const data: EmbeddingResponse = await response.json();
+      setEmbedding(data.embedding ?? []);
+    } catch (requestError) {
+      const fallback = "Could not fetch embedding from backend.";
+      setError(
+        requestError instanceof Error ? `${fallback} ${requestError.message}` : fallback,
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopyEmbedding = async () => {
+    if (embedding.length === 0) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(embedding));
+      setCopyStatus("Embedding copied to clipboard.");
+      setTimeout(() => setCopyStatus(null), 2200);
+    } catch {
+      setCopyStatus("Copy failed. Please copy from the expanded JSON view.");
+      setTimeout(() => setCopyStatus(null), 2600);
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <main className="page-shell">
+      <section className="aurora" aria-hidden="true" />
+      <section className="panel">
+        <p className="eyebrow">Conversation Embeddings Demo</p>
+        <h1>Generate embeddings from profile snapshot.</h1>
+
+        <form onSubmit={handleSubmit} className="form-grid">
+          <label htmlFor="conversationText" className="label">
+            Input Text
+          </label>
+          <textarea
+            id="conversationText"
+            value={textInput}
+            onChange={(event) => setTextInput(event.target.value)}
+            placeholder="Paste a conversation, note, or transcript here..."
+            rows={8}
+          />
+
+          <div className="file-row">
+            <label htmlFor="txtUpload" className="upload-button">
+              Upload .txt
+            </label>
+            <input
+              id="txtUpload"
+              type="file"
+              accept=".txt,text/plain"
+              onChange={handleFileUpload}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            <span className="file-label">
+              {fileName ? `Loaded: ${fileName}` : "No file selected"}
+            </span>
+          </div>
+
+          <button type="submit" className="submit-button" disabled={loading}>
+            {loading ? "Generating..." : "Get Embedding"}
+          </button>
+        </form>
+
+        {error ? <p className="status error">{error}</p> : null}
+
+        <section className="result-card" aria-live="polite">
+          <div className="result-header">
+            <h2>Embedding Output</h2>
+            <span>{dimensions > 0 ? `${dimensions} dimensions` : "No vector yet"}</span>
+          </div>
+
+          {dimensions > 0 ? (
+            <>
+              <div className="copy-row">
+                <button type="button" className="copy-button" onClick={handleCopyEmbedding}>
+                  Copy Full Vector
+                </button>
+                {copyStatus ? <span className="copy-status">{copyStatus}</span> : null}
+              </div>
+              <p className="preview">{preview}</p>
+              <details>
+                <summary>Show full embedding array</summary>
+                <pre>{JSON.stringify(embedding, null, 2)}</pre>
+              </details>
+            </>
+          ) : (
+            <p className="empty-state">
+              Submit text to view the generated embedding from your FastAPI backend.
+            </p>
+          )}
+        </section>
+      </section>
+    </main>
   );
 }

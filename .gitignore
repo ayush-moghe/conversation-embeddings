@@ -1,2 +1,5 @@
 backend/venv
 
+.vscode
+
+backend/data
