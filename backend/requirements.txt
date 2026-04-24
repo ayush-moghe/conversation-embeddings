@@ -43,7 +43,6 @@ rignore==0.7.6
 safetensors==0.7.0
 scikit-learn==1.8.0
 scipy==1.17.1
-sentence-transformers==5.4.1
 sentry-sdk==2.58.0
 setuptools==81.0.0
 shellingham==1.5.4

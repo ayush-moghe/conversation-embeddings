@@ -9,3 +9,5 @@ backend/test
 .DS_Store
 
 backend/__pycache__
+
+*.env
